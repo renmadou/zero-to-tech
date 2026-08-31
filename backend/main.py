@@ -3,26 +3,15 @@ from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from pypinyin import lazy_pinyin, Style
 from snownlp import SnowNLP
-import json
+
 from datetime import datetime, timezone
 
-HISTORY_FILE = "history.json"
+from storage import init_db, save_record, get_history   # ← 这一行：import 里多个 init_db
 
-def load_history():
-    try:
-        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return []
-
-def save_record(record):
-    records = load_history()
-    records.append(record)
-    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-        json.dump(records, f, ensure_ascii=False, indent=2)
-
+init_db() # ← 新增：初始化数据库
 
 app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
@@ -76,6 +65,4 @@ def analyze(req: AnalyzeRequest):
 
 @app.get("/api/history")
 def history():
-    records = load_history()   # 读出文件里的全部记录
-    records.reverse()          # 倒过来：新的排前面
-    return records[:2]        # 切一刀：只留最近 10 条
+    return get_history(10)

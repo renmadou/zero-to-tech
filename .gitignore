@@ -22,3 +22,4 @@ backend/.venv
 __pycache__/
 *.py[cod]
 history.json
+backend/*.db
